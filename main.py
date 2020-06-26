@@ -44,7 +44,7 @@ while True:
             label.append(st[0])
             opcode.append(st[1])
             oprand.append(st[2])
-            PC.append(int('0x'+st[2])) 
+            PC.append(int(st[2],16)) 
             i = i+1
 
         elif s == 1:
@@ -104,9 +104,9 @@ while True:
 
             else:
                 language.append(st)
-                label[i].append(" ")
-                opcode[i].append(st[0])
-                oprand[i].append(st[1])
+                label.append(" ")
+                opcode.append(st[0])
+                oprand.append(st[1])
                 if i==1:
                     PC.append(PC[0])
                     i = i+1
@@ -117,9 +117,9 @@ while True:
     elif len(st) == 1:
         if s == 1:
             language.append(st)
-            label[i].append(" ")
-            opcode[i].append(st[0])
-            oprand[i].append(" ")
+            label.append(" ")
+            opcode.append(st[0])
+            oprand.append(" ")
             if i==1:
                 PC.append(PC[0])
                 i=i+1
@@ -127,7 +127,7 @@ while True:
                 PC.append(PC[i-1]+3)
                 i = i+1
 
-for j in range(0,i+1):
+for j in range(0,i):
     opop=hex(PC[j]).replace('0x','')
     if len(opop)==1:
         opop='000'+opop
@@ -141,35 +141,34 @@ for j in range(0,i+1):
     else:
         PC[j]=opop                                                                  #將位置全部改成16進位 字串 沒有0x
 
-
-    for j in range(1,i+1):
-        if opcode[j]=="WORD":
-            opop=opcode[j]                                                          #直接放入目的碼
-            for a in range(0,6-len(oprand[j])):
-                opop="0"+opop                                                       #不足6補0
-        elif opcode[j]=="BYTE":
-            opop=oprand[j]
-            temp=""
-            if opop[0]=='C':                                                        #如果是字串
-                for a in range(2,len(opop)-1):                                      #把一個個字元拿出來 扣掉C''三個位置
-                    temp=temp+ASCII[opop[a]]                                        #尋找ASCII
-                MC.append(temp)
-            elif opop[0]=='X':                                                      #如果是16進位
-                for a in range(2,len(opop)-1):                                      #扣掉X''三個位置
-                    temp=temp+opop[a]
-                MC.append(temp)
-        elif opcode[j]=="RSUB":
-            MC.append("4C0000")
-        elif opcode[j]=="END":
-            break
-        elif opcode[j]=="RESW" or opcode[j]=="RESW":                                #沒有目的碼
-            MC.append(" ")
-        else:                                                                       #其他狀況
-            opop=hex(mnemonic[opcode[j]]).replace('0x','')                          #將opcode轉成16進位
-            for l in range(0,i+1):
-                if oprand[j]==label[l]:                                             #找到對應lable位置
-                    MC.append(opop+PC[l])                                           #兩個串在一起
-                    break
-
-for j in range(0,i+1):
+for j in range(1,i):
+    if opcode[j]=="WORD":
+        opop=opcode[j]                                                          #直接放入目的碼
+        for a in range(0,6-len(oprand[j])):
+            opop="0"+opop                                                       #不足6補0
+    elif opcode[j]=="BYTE":
+        opop=oprand[j]
+        temp=""
+        if opop[0]=='C':                                                        #如果是字串
+            for a in range(2,len(opop)-1):                                      #把一個個字元拿出來 扣掉C''三個位置
+                temp=temp+ASCII[opop[a]]                                        #尋找ASCII
+            MC.append(temp)
+        elif opop[0]=='X':                                                      #如果是16進位
+            for a in range(2,len(opop)-1):                                      #扣掉X''三個位置
+                temp=temp+opop[a]
+            MC.append(temp)
+    elif opcode[j]=="RSUB":
+        MC.append("4C0000")
+    elif opcode[j]=="RESW" or opcode[j]=="RESB":                                #沒有目的碼
+        MC.append(" ")
+    else:                                                                       #其他狀況
+        opop=hex(int(mnemonic[opcode[j]])).replace('0x','')                     #將opcode轉成16進位
+        if len(opop)==1:
+            opop='0'+opop
+        for l in range(0,i+1):
+            if oprand[j]==label[l]:                                             #找到對應lable位置
+                MC.append(opop+PC[l])                                           #兩個串在一起
+                break
+                
+for j in range(0,i-1):
     print(MC[j])
